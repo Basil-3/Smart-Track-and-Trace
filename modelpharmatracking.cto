@@ -1,0 +1,121 @@
+
+/*
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+namespace org.example.mynetwork
+
+concept Address {
+  o String state
+  o String city
+  o String zip
+}
+enum PackageStatus {
+  o SHIPPED
+  o WHOLESALE
+  o RETAIL_STORE
+}
+
+transaction SupplynContract {
+    --> Package batch
+    --> Manufacturer m_OldOwner
+    --> Shipper s_NewOwner
+    --> Wholesaleperson party_1
+    --> Retailer party_2
+}
+transaction Wholesale {
+    --> Shipper s_OldOwner
+    --> Package batch
+    --> makeContract start
+    --> Wholesaleperson w_NewOwner
+}
+transaction Retail {
+    --> Wholesaleperson w_OldOwner
+    --> Package batch
+    --> Retailer r_NewOwner
+    --> makeContract start
+}
+transaction TemperatureReading {
+    --> Package package
+    o Double mean
+}
+transaction HumidityReading {
+    --> Package package
+    o Double mean
+}
+transaction LocationReading {
+    --> Package package
+    o String coordinate
+}
+transaction createPackage {
+}
+transaction createManufacturer {
+}
+transaction createShipper {
+}
+transaction createWholesaleperson {
+}
+transaction createRetailer {
+}
+
+
+abstract asset packageType identified by batchId {
+  o String batchId
+  o String shipmentId
+  o String expiryDate optional
+  o Long unitCount
+  o Double meanTemperature
+  o TemperatureReading [] temperature_cur optional
+  o HumidityReading [] humidity_cur optional
+  o LocationReading [] location optional
+  o String ownerId
+  o Double faceValue
+  --> Manufacturer owner
+}
+asset Package extends packageType {
+}
+
+abstract asset Contract identified by contractId {
+  	o String contractId
+    -->Manufacturer manufacturer
+    -->Shipper shipper
+    -->Wholesaleperson wholesaleperson
+    -->Retailer retailer
+    -->Package box
+    o PackageStatus status
+}
+asset makeContract extends Contract {
+	  o DateTime startTime
+}
+
+abstract participant chainManager identified by id {
+  o String id
+  o String firstName
+  o String lastName
+  o Address address
+  o Double wallet
+}
+participant Manufacturer extends chainManager {
+}
+participant Shipper extends chainManager {
+}
+participant Wholesaleperson extends chainManager {
+}
+participant Retailer extends chainManager {
+}
+
+event changeOwner {
+    --> Package batch
+    o String oldOwner
+    o String newOwner
+}
